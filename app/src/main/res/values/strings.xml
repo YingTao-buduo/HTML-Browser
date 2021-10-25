@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">HTML浏览器</string>
+    <string name="choose">请选择HTML文件</string>
+    <string name="company_name">强源体育用品有限公司</string>
+    <string name="tips">默认启动上次页面</string>
+    <string name="suffix">秒后</string>
+</resources>
