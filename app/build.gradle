@@ -6,7 +6,7 @@ android {
     compileSdk 30
 
     defaultConfig {
-        applicationId "com.yt.athleteview"
+        applicationId "com.yt.htmlbrowser"
         minSdk 21
         targetSdk 30
         versionCode 1

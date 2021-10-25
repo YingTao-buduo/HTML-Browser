@@ -50,6 +50,12 @@ public class MainActivity extends AppCompatActivity {
         timer();
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        isOperate = true;
+    }
+
     private final Handler handler = new Handler(Looper.myLooper()){
         @Override
         public void handleMessage(@NonNull Message msg) {
