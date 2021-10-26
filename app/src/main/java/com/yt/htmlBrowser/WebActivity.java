@@ -28,7 +28,7 @@ public class WebActivity extends AppCompatActivity {
         SharedPreferences sp = getSharedPreferences("file", MODE_PRIVATE);
 
         WV webView = findViewById(R.id.wv_av);
-        String url = sp.getString("path","/");
+        String url = sp.getString("path","/html/index.html");
         webView.loadUrl("file://" + Environment.getExternalStorageDirectory().getCanonicalPath() + url);
         webView.setInitialScale(100);
         webView.getSettings().setJavaScriptEnabled(true);
