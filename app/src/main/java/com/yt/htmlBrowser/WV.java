@@ -26,9 +26,9 @@ public class WV extends WebView {
         super(context, attrs, defStyleAttr, defStyleRes);
     }
 
-    @SuppressLint("ClickableViewAccessibility")
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        return false;
-    }
+//    @SuppressLint("ClickableViewAccessibility")
+//    @Override
+//    public boolean onTouchEvent(MotionEvent event) {
+//        return true;
+//    }
 }

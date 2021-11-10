@@ -4,4 +4,11 @@
     <string name="company_name">强源体育用品有限公司</string>
     <string name="tips">默认启动上次页面</string>
     <string name="suffix">秒后</string>
+    <string name="ok">确认</string>
+    <string name="tips_a">请输入场馆及靶道编号</string>
+    <string name="venue_id_hint">场馆编号</string>
+    <string name="target_hint">靶道</string>
+    <string name="tips_s">请输入场馆编号</string>
+    <string name="tips_r">请输入场馆编号</string>
+    <string name="size_hint">靶显示大小</string>
 </resources>
