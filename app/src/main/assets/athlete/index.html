@@ -152,8 +152,8 @@
             <div class="box_1_right-text">{{name}}</div>
             <br/>
             <div class="box_1_left-text">枪弹口径（4.50 mm）</div>
-            <canvas id="target-type" class="shoot-box-target" width="1110px" height="946px"></canvas>
-            <canvas id="shoot-point" class="shoot-box-point" width="1110px" height="946px"></canvas>
+            <canvas id="target-type" class="shoot-box-target"></canvas>
+            <canvas id="shoot-point" class="shoot-box-point"></canvas>
         </div>
         `
     })
@@ -298,10 +298,16 @@
              * 靶区域
              */
             vue_matchInfo: {},//比赛信息
-            match_type: "手枪",//靶类型
+            match_type: "",//靶类型
             target_type_string: "",//靶区域字符串
             shoot_point_array: [],//所有射击点坐标集合数组
+            /**
+             * 一个Canvas的宽高（自适应网页可视区宽高）
+             */
+            canvas_width: (document.body.clientWidth - 6) * 0.8 * 0.725,
+            canvas_height: (document.body.clientHeight - 4) * 0.88,
             target_scale_ratio: 1,//缩放比例
+            timer: false,// 为了避免频繁触发resize函数导致页面卡顿，使用定时器
             /**
              * 比赛阶段区域
              */
@@ -411,18 +417,21 @@
              * 绘制步枪靶
              */
             drawRifleTarget() {
+                var scale = this.target_scale_ratio;//获取缩放比例
+                var targetBoxWidth = document.getElementsByClassName("target-box")[0].clientWidth;//获取其中一个外层div宽度，决定靶心偏移量
                 var canvasRifle = document.getElementById("target-type");
+                canvasRifle.setAttribute("width", this.canvas_width * scale);
+                canvasRifle.setAttribute("height", this.canvas_height * scale);
                 var ctx = canvasRifle.getContext("2d");
                 // 加载前清空画布
                 ctx.clearRect(0, 0, canvasRifle.clientWidth, canvasRifle.clientHeight);
                 var w = canvasRifle.clientWidth / 2;//根据(0, 0)点横坐标需要移动的距离
                 var h = canvasRifle.clientHeight / 2;//根据(0, 0)点纵坐标需要移动的距离
-                ctx.translate(-(w - 1110 / 2), 0);//缩放横移
+                ctx.translate(-(w - targetBoxWidth / 2), 0);//缩放横移
                 var n = 9;//画圆数目
                 var spacing = 5;//标准比例环半径差
                 var ring_height = canvasRifle.clientHeight * 0.96;//核心区域高
                 var ring_radius = ring_height / 2;//核心区域最外圈半径
-                var scale = this.target_scale_ratio;//获取缩放比例
 
                 var rifle_ring_unit = ring_height * (0.5 / 45.5);//核心区域标准比例的最小单位长度（步枪）
                 for (var i = 0; i < n; i++) {
@@ -452,18 +461,23 @@
              * 绘制手枪靶
              */
             drawPistolTarget() {
+                var scale = this.target_scale_ratio;//获取缩放比例
+                var targetBoxWidth = document.getElementsByClassName("target-box")[0].clientWidth;//获取其中一个外层div宽度，决定靶心偏移量
                 var canvasPistol = document.getElementById("target-type");
+                canvasPistol.setAttribute("width", this.canvas_width * scale);
+                canvasPistol.setAttribute("height", this.canvas_height * scale);
+                console.log(document.getElementsByClassName("target-box"))
+                console.log(targetBoxWidth)
                 var ctx = canvasPistol.getContext("2d");
                 // 加载前清空画布
                 ctx.clearRect(0, 0, canvasPistol.clientWidth, canvasPistol.clientHeight);
                 var w = canvasPistol.clientWidth / 2;//根据(0, 0)点横坐标需要移动的距离
                 var h = canvasPistol.clientHeight / 2;//根据(0, 0)点纵坐标需要移动的距离
-                ctx.translate(-(w - 1110 / 2), 0);//缩放横移
+                ctx.translate(-(w - targetBoxWidth / 2), 0);//缩放横移
                 var n = 9;//画圆数目
                 var spacing = 16;//标准比例环半径差
                 var ring_height = canvasPistol.clientHeight * 0.96;//核心区域高
                 var ring_radius = ring_height / 2;//核心区域最外圈半径
-                var scale = this.target_scale_ratio;//获取缩放比例
 
                 var pistol_ring_unit = ring_height * (0.5 / 155.5);//核心区域标准比例的最小单位长度（手枪）
                 for (var i = 0; i < n; i++) {
@@ -504,13 +518,17 @@
              * 绘制射击点
              */
             paint_point() {
+                var scale = this.target_scale_ratio;//获取缩放比例
+                var targetBoxWidth = document.getElementsByClassName("target-box")[0].clientWidth;//获取其中一个外层div宽度，决定靶心偏移量
                 var canvasPoint = document.getElementById("shoot-point");
+                canvasPoint.setAttribute("width", this.canvas_width * scale);
+                canvasPoint.setAttribute("height", this.canvas_height * scale);
                 var ctx = canvasPoint.getContext("2d");
                 // 加载前清空画布
                 ctx.clearRect(0, 0, canvasPoint.clientWidth, canvasPoint.clientHeight);
                 var w = canvasPoint.clientWidth / 2;//根据(0, 0)点横坐标需要移动的距离
                 var h = canvasPoint.clientHeight / 2;//根据(0, 0)点纵坐标需要移动的距离
-                ctx.translate(-(w - 1110 / 2), 0);//缩放横移
+                ctx.translate(-(w - targetBoxWidth / 2), 0);//缩放横移
                 // 定义射击点边框、半径、坐标参数
                 var border;
                 var radius;
@@ -519,7 +537,6 @@
                 var ring_radius = ring_height / 2;//核心区域最外圈半径
                 var rifle_ring_unit = ring_height * (0.5 / 45.5);//核心区域标准比例的最小单位长度（步枪）
                 var pistol_ring_unit = ring_height * (0.5 / 155.5);//核心区域标准比例的最小单位长度（手枪）
-                var scale = this.target_scale_ratio;//获取缩放比例
                 if (this.match_type === "步枪") {
                     border = 14 * scale;
                     radius = 4.5 * rifle_ring_unit - border;
@@ -570,18 +587,6 @@
              * 设置Canvas缩放大小
              */
             setCanvasSize(ring) {
-                var canvasTarget = document.getElementById("target-type");
-                var canvasPoint = document.getElementById("shoot-point");
-                var ctx1 = canvasTarget.getContext("2d");
-                var ctx2 = canvasPoint.getContext("2d");
-                //获取画布的宽和高
-                var canvasTargetWidth = canvasTarget.clientWidth;
-                var canvasTargetHeight = canvasTarget.clientHeight;
-                var canvasPointWidth = canvasPoint.clientWidth;
-                var canvasPointHeight = canvasPoint.clientHeight;
-                //获取画布的图像信息,一个副本
-                var copyCanvas1 = ctx1.getImageData(0, 0, canvasTargetWidth, canvasTargetHeight);
-                var copyCanvas2 = ctx2.getImageData(0, 0, canvasPointWidth, canvasPointHeight);
                 var rifleTenRingDiameter = 0.5;//步枪十环直径
                 var rifleRingDiameterDiff = 5;//步枪环直径差
                 var pistolTenRingDiameter = 11.5;//手枪十环直径
@@ -589,13 +594,6 @@
                 var changeMultiple;
                 if (this.match_type === "步枪") {
                     changeMultiple = (rifleTenRingDiameter + (10 - ring) * rifleRingDiameterDiff) / 45.5;
-                    canvasTarget.setAttribute("width", 1110 / changeMultiple);
-                    canvasTarget.setAttribute("height", 946 / changeMultiple);
-                    canvasPoint.setAttribute("width", 1110 / changeMultiple);
-                    canvasPoint.setAttribute("height", 946 / changeMultiple);
-                    //将获得的图像副本,重新绘制到画布,完成画布的大小改变
-                    ctx1.putImageData(copyCanvas1, 0, 0);
-                    ctx2.putImageData(copyCanvas2, 0, 0);
                     //将缩放比例赋值Vue
                     this.target_scale_ratio = 1 / changeMultiple;
                     //重新绘制靶图和射击点
@@ -603,13 +601,6 @@
                     this.paint_point();
                 } else if (this.match_type === "手枪") {
                     changeMultiple = (pistolTenRingDiameter + (10 - ring) * pistolRingDiameterDiff) / 155.5;
-                    canvasTarget.setAttribute("width", 1110 / changeMultiple);
-                    canvasTarget.setAttribute("height", 946 / changeMultiple);
-                    canvasPoint.setAttribute("width", 1110 / changeMultiple);
-                    canvasPoint.setAttribute("height", 946 / changeMultiple);
-                    //将获得的图像副本,重新绘制到画布,完成画布的大小改变
-                    ctx1.putImageData(copyCanvas1, 0, 0);
-                    ctx2.putImageData(copyCanvas2, 0, 0);
                     //将缩放比例赋值Vue
                     this.target_scale_ratio = 1 / changeMultiple;
                     //重新绘制靶图和射击点
@@ -935,6 +926,30 @@
         }
     })
 
+    /**
+     * 监听窗口变化
+     */
+    window.onresize = () => {
+        return (() => {
+            // 为了避免频繁触发resize函数导致页面卡顿，使用定时器
+            if (!thisTargetWholeInfo.timer) {
+                thisTargetWholeInfo.timer = true;
+                setTimeout(function(){
+                    // 重新赋值最新窗口数据
+                    thisTargetWholeInfo.canvas_width = (document.body.clientWidth - 8) * 0.8 * 0.725;
+                    thisTargetWholeInfo.canvas_height = (document.body.clientHeight - 6) * 0.88;
+                    if (thisTargetWholeInfo.match_type === "步枪") {
+                        thisTargetWholeInfo.drawRifleTarget();
+                    } else if (thisTargetWholeInfo.match_type === "手枪") {
+                        thisTargetWholeInfo.drawPistolTarget();
+                    }
+                    thisTargetWholeInfo.paint_point();
+                    thisTargetWholeInfo.timer = false
+                }, 200);
+            }
+        })()
+    }
+
     // 全局请求地址
     var globalUrl = "http://192.168.3.2:3881";
 
@@ -1003,7 +1018,7 @@
                 shoot_info(info.data);
                 break;
             case 10://排名数据
-                //获取排名集合
+                //实现排名动画
                 rank_info(info.data);
                 break;
             case 11://缩放数据
@@ -1012,6 +1027,9 @@
                 break;
             case 12://选手淘汰
                 over_info();
+                break;
+            case 14://冠军信息（表示射击结束）
+                shoot_end();
                 break;
             default:
                 break;
@@ -1026,7 +1044,9 @@
     // 服务器断连重连
     function reconnect(uri) {
         console.log("Connection reconnect...");
-        //断连重连显示遮罩
+        //断线重连隐藏决赛完赛后遮罩
+        thisTargetWholeInfo.isOverMask = false;
+        //断连重连显示LOGO遮罩
         thisTargetWholeInfo.isShowMask = false;
         //断连重连更新遮罩文本
         thisTargetWholeInfo.maskText = "断线重连中...";
@@ -1048,7 +1068,10 @@
 
     // 处理暂无赛事信息JSON信息
     function no_match() {
-        thisTargetWholeInfo.isShowMask = false;//不存在赛事显示LOGO遮罩
+        //隐藏完赛遮罩
+        thisTargetWholeInfo.isOverMask = false;
+        //显示LOGO遮罩
+        thisTargetWholeInfo.isShowMask = false;
         //无赛事更新遮罩文本
         thisTargetWholeInfo.maskText = "暂无赛事信息";
     }
@@ -1259,26 +1282,27 @@
     //             if (element.key === targetLine) {//获取当前靶道旧排名
     //                 oldRank = element.value;
     //             }
-    //             if (newRank === element.value) {
-    //                 if (element.key > targetLine) {
-    //                     rankCome = 1;
-    //                 }
-    //                 if (element.key < targetLine) {
-    //                     rankCome = -1;
-    //                 }
-    //             }
+    //             // if (newRank === element.value) {
+    //             //     if (element.key > targetLine) {
+    //             //         rankCome = 1;
+    //             //     }
+    //             //     if (element.key < targetLine) {
+    //             //         rankCome = -1;
+    //             //     }
+    //             // }
     //         })
     //     }
     //
     //     newRankArray.forEach((element) => {
     //         if (oldRank === element.value) {
-    //             if (element.key > target) {
-    //                 go = 1;
+    //             if (element.key > targetLine) {
+    //                 rankGo = 1;
     //             }
-    //             if (element.key < target) {
-    //                 go = -1;
+    //             if (element.key < targetLine) {
+    //                 rankGo = -1;
     //             }
     //         }
+    //     })
     //
     //     if (oldRank < 0) {
     //         // 从下飞入
@@ -1291,9 +1315,10 @@
     //                 // 往右飞出
     //                 break;
     //             case 0:
-    //             // 往下飞出
+    //                 // 往下飞出
+    //                 break;
     //         }
-    //         switch(rankCome){
+    //         switch(rankCome) {
     //             case -1:
     //                 // 从左飞入
     //                 break;
@@ -1301,7 +1326,8 @@
     //                 // 从右飞入
     //                 break;
     //             case 0:
-    //             // 从下飞入
+    //                 // 从下飞入
+    //                 break;
     //         }
     //     }
     // }
@@ -1419,6 +1445,18 @@
         }
         // 处理完所有动画将新排名数组赋值vue
         thisTargetWholeInfo.shoot_exit_rank_array = newRankArray;
+
+        // 特殊情况（服务于第一名完赛后遮罩）
+        // 如果当前比赛阶段是决赛时
+        // if (thisTargetWholeInfo.match_stage === "决赛") {
+        //     // 如果第一名射击达到24发
+        //     if () {
+        //         // 如果最新排名存在两个第一名
+        //         if () {
+        //
+        //         }
+        //     }
+        // }
     }
 
     // 处理Canvas缩放JSON信息
@@ -1463,9 +1501,65 @@
         //结束单发射击状态
         thisTargetWholeInfo.isNeedOddFinals = false;
         thisTargetWholeInfo.isOddShootingFinals = false;
+        //获取当前靶射击计数组多个分组的长度
+        var len = thisTargetWholeInfo.current_line_shoot_data.length;
+        //获取射击数据最后一个分组数组
+        var arr = thisTargetWholeInfo.current_line_shoot_data[len - 1];
+        //获取最后一发非单发射击的发序求出最终排名并赋值Vue
+        thisTargetWholeInfo.rank_num = 8 - (arr[1].orderNo - 12) / 2;
         thisTargetWholeInfo.isFinishMatchFinals = true;//完成比赛
-        thisTargetWholeInfo.isOverMask = true;//显示完成决赛遮罩
+        setTimeout(function () {
+            thisTargetWholeInfo.isOverMask = true;//显示完成决赛遮罩
+        }, 3000);
     }
+
+    // 处理射击结束信号（冠军信号）
+    function shoot_end() {
+        // 如果接收到该信号但当前靶道还没有完成射击
+        if (thisTargetWholeInfo.isFinishMatchFinals === false) {
+            thisTargetWholeInfo.rank_num = 1;
+        }
+        thisTargetWholeInfo.isFinishMatchFinals = true;//完成比赛
+        setTimeout(function () {
+            thisTargetWholeInfo.isOverMask = true;//显示完成决赛遮罩
+        }, 3000);
+    }
+
+    /*$(document).keydown(function(event){
+        var keyValue = 0;
+        switch (event.keyCode) {
+            case 97:
+                keyValue = 1;
+                break;
+            case 98:
+                keyValue = 2;
+                break;
+            case 99:
+                keyValue = 3;
+                break;
+            case 100:
+                keyValue = 4;
+                break;
+            case 101:
+                keyValue = 5;
+                break;
+            case 102:
+                keyValue = 6;
+                break;
+            case 103:
+                keyValue = 7;
+                break;
+            case 104:
+                keyValue = 8;
+                break;
+            default:
+                keyValue = 0
+                break;
+        }
+        if (keyValue !== 0) {
+            thisTargetWholeInfo.setCanvasSize(keyValue);
+        }
+    });*/
 </script>
 </body>
 </html>

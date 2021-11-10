@@ -214,6 +214,7 @@ body {
 	float: left;
 	margin: 0 2px 0 0;
 	background: black;
+	overflow: hidden;
 	/*使用Flexbox文字水平垂直居中*/
 	display: flex;
 	justify-content: center;/*水平设置*/
@@ -354,7 +355,7 @@ body {
 	color: #FFFFFF;/*字体颜色*/
 	font-style: normal;/*字体样式*/
 	font-weight: bold;/*字体粗细*/
-	font-size: 3.6vw;/*字体尺寸*/
+	font-size: 3.5vw;/*字体尺寸*/
 	/*line-height: 130%;*//*行间距*/
 	writing-mode: tb-rl;/*竖行文字*/
 	letter-spacing: 10px;/*字间距*/

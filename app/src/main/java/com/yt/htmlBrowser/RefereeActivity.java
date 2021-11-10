@@ -16,6 +16,7 @@ public class RefereeActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_referee);
+        initView();
     }
 
     private void initView(){
