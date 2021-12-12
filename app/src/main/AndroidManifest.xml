@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.yt.htmlBrowser">
+    package="com.yt.htmlbrowser"
+    android:installLocation="internalOnly">
 
     <application
         android:allowBackup="true"
@@ -13,13 +14,13 @@
         android:theme="@style/Theme.HTMLBrowser"
         android:usesCleartextTraffic="true">
         <activity
-            android:name=".SplashActivity"
+            android:name="com.yt.htmlbrowser.SplashActivity"
             android:exported="true" />
         <activity
-            android:name=".RefereeActivity"
+            android:name="com.yt.htmlbrowser.RefereeActivity"
             android:exported="true" />
         <activity
-            android:name=".AthleteActivity"
+            android:name="com.yt.htmlbrowser.AthleteActivity"
             android:exported="true" >
 
             <intent-filter>
@@ -29,18 +30,26 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".LocalShowActivity"
+            android:name="com.yt.htmlbrowser.LocalShowActivity"
             android:exported="true">
         </activity>
         <activity
-            android:name=".WebActivity"
+            android:name="com.yt.htmlbrowser.WebActivity"
             android:exported="true"
             android:screenOrientation="landscape" />
         <activity
-            android:name=".MainActivity"
+            android:name="com.yt.htmlbrowser.MainActivity"
             android:exported="true"
             android:screenOrientation="landscape" />
+        <receiver android:name="com.yt.htmlbrowser.BootReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </receiver>
     </application>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.INTERNET" />
 

@@ -7,7 +7,7 @@
     <script type="text/javascript" src="js/jquery.min.js"></script>
     <!-- 引入Vue.js框架 -->
     <script src="js/vue.js"></script>
-    <title>大屏参数设置</title>
+    <title>选手参数设置</title>
     <style>
         * {
             margin: 0;
@@ -35,16 +35,24 @@
 <div class="box">
     <div class="detail">
         场馆编号：<input id="venue_no" type="text" style="text-align: center"/><br/><br/>
+        靶道编号：<input id="target_no" type="text" style="text-align: center"/><br/><br/>
         <input type="button" value=" 登入 " onclick="login()"/>
     </div>
 </div>
 <script>
     function login() {
         var venueNo = document.getElementById("venue_no").value;
-        if (venueNo !== "") {
-            window.location.href = "index.html?venueId=" + venueNo;
+        var targetNo = document.getElementById("target_no").value;
+        if (venueNo !== "" || targetNo !== "") {
+            window.location.href = "index.html?venueId=" + venueNo + "&targetId=" + targetNo;
         }
     }
+
+    $(document).keydown(function(event){
+        if(event.keyCode === 13 || event.keyCode === 108){
+            login();
+        }
+    });
 </script>
 </body>
 </html>

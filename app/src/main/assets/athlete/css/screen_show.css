@@ -2,6 +2,9 @@
 	margin: 0;
 	padding: 0;
 }
+[v-cloak]{
+	display: none;
+}
 body {
 	height: 100vh;
 	width: 100vw;
@@ -25,6 +28,29 @@ body {
 	background: black;
 	position: absolute;
 	z-index: 2;
+}
+
+/*-------------------------------------------------------------------------------*/
+/*遮罩层显示靶位号区域*/
+.all .mask .mask_target-box {
+	height: 23.2vh;
+	width: 13vw;
+	position: absolute;
+	right: 0;
+	bottom: 0;
+	overflow: hidden;
+	/*使用Flexbox文字水平垂直居中*/
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+/*遮罩层显示靶位号区域文本*/
+.all .mask .mask_target-box .mask_target_num {
+	color: #FFFFFF;
+	font-style: normal;
+	font-weight: bold;
+	font-size: 9vw;
+	font-family: "Source Han Sans CN", serif;
 }
 
 /*-------------------------------------------------------------------------------*/
@@ -164,9 +190,20 @@ body {
 .all .background .top1 .left .right .all_shoots-box {
 	width: 100%;
 	padding-top: 20px;
-	height: calc(91% - 20px - 1px);
+	height: calc(76% - 20px - 1px);
 	background: black;
 	overflow: hidden;
+}
+/*射击发数区域*/
+.all .background .top1 .left .right .current_order-box {
+	width: 100%;
+	height: 15%;
+	background: black;
+	overflow: hidden;
+	/*使用Flexbox文字水平垂直居中*/
+	display: flex;
+	justify-content: center;
+	align-items: center;
 }
 /*上右区域*/
 .all .background .top1 .right {
@@ -248,13 +285,32 @@ body {
 	justify-content: center;
 	align-items: center;
 }
-/*选手信息区域*/
+/*选手信息区域区域*/
 .all .background .bottom .athlete_info-box {
 	width: calc(62% - 1px);
 	height: 100%;
 	float: left;
+}
+/*选手姓名区域*/
+.all .background .bottom .athlete_info-box .athleteName {
+	width: calc(50% - 1px);
+	height: 100%;
+	float: left;
+	margin: 0 2px 0 0;
 	background: black;
-	/*使用Flexbox文字水平垂直居中*/
+	overflow: hidden;
+	/*使用Flexbox文字垂直居中*/
+	display: flex;
+	align-items: center;
+}
+/*选手团队区域*/
+.all .background .bottom .athlete_info-box .athleteTeam {
+	width: calc(50% - 1px);
+	height: 100%;
+	float: left;
+	background: black;
+	overflow: hidden;
+	/*使用Flexbox文字垂直居中*/
 	display: flex;
 	align-items: center;
 }
@@ -340,7 +396,14 @@ body {
 	float: right;
 	text-align: right;
 }
-/*排名区域*/
+/*当前发序区域*/
+.box_4-num {
+	color: #FFFFFF;
+	font-style: normal;
+	font-weight: normal;
+	font-size: 4vw;
+	font-family: "Source Han Sans CN", serif;
+}
 /*当前环数区域*/
 .box_5-num {
 	color: #FFFFFF;
@@ -388,21 +451,21 @@ body {
 	font-family: "Source Han Sans CN", serif;
 	margin-right: 2%;
 }
-/*选手信息区域*/
-.box_9_remark-text {
-	color: #FFFFFF;
-	font-style: normal;
-	font-weight: normal;
-	font-size: 1.66vw;
-	margin-left: 1%;
-	font-family: "楷体", serif;
-}
-.box_9_detail-text {
+.box_9-text {
 	color: #FFFFFF;
 	font-style: normal;
 	font-weight: bold;
-	font-size: 2.5vw;
+	font-size: 4vw;
 	font-family: "Source Han Sans CN", serif;
+	margin-left: 1%;
+}
+.box_10-text {
+	color: #FFFFFF;
+	font-style: normal;
+	font-weight: bold;
+	font-size: 4vw;
+	font-family: "Source Han Sans CN", serif;
+	margin-left: 1%;
 }
 
 /*-------------------------------------------------------------------------------*/
@@ -434,6 +497,7 @@ body {
 .country {
 	height: 80%;
 	text-align: center;
+	margin-left: 1.5%;
 }
 .flag_img {
 	width: 5.76vw;
@@ -511,6 +575,27 @@ body {
 	}
 	100% {
 		transform: rotate(720deg) scale(0.18, 0.18)
+	}
+}
+/*排名变大*/
+@keyframes bigger {
+	0% {
+		transform: scale(0.18, 0.18);
+	}
+	90% {
+		transform: scale(1.2, 1.2);
+	}
+	100% {
+		transform: scale(1, 1);
+	}
+}
+/*排名变小*/
+@keyframes smaller {
+	0% {
+		transform: scale(1, 1);
+	}
+	100% {
+		transform: scale(0.18, 0.18);
 	}
 }
 /*圆点底部飞入*/

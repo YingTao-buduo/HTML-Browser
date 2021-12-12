@@ -1,20 +1,21 @@
-package com.yt.htmlBrowser;
+package com.yt.htmlbrowser;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.annotation.SuppressLint;
-import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Environment;
 import android.view.View;
 
 import java.io.IOException;
 
-public class LocalShowActivity extends AppCompatActivity {
+public class WebActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_local_show);
+        setContentView(R.layout.activity_web);
         try {
             initView();
         } catch (IOException e) {
@@ -24,36 +25,11 @@ public class LocalShowActivity extends AppCompatActivity {
 
     @SuppressLint("SetJavaScriptEnabled")
     private void initView() throws IOException {
+        SharedPreferences sp = getSharedPreferences("file", MODE_PRIVATE);
+
         WV webView = findViewById(R.id.wv_av);
-
-        Intent intent = getIntent();
-        String type = "";
-        String venueId = "";
-        String target = "";
-        String size = "";
-
-        String url = "file:///android_asset/%s/index.html";
-
-        if (intent != null) {
-            venueId = intent.getStringExtra("venueId");
-            type = intent.getStringExtra("type");
-            url = String.format(url, type);
-            switch (type) {
-                case "athlete":
-                    target = intent.getStringExtra("target");
-                    url = url + "?venueId=" + venueId + "&target=" + target;
-                    break;
-                case "referee":
-                    url = url + "?venueId=" + venueId;
-                    break;
-                case "splash":
-                    size = intent.getStringExtra("size");
-                    url = url + "?venueId=" + venueId + "&showRing=" + size;
-                    break;
-            }
-        }
-
-        webView.loadUrl(url);
+        String url = sp.getString("path","/html/index.html");
+        webView.loadUrl("file://" + Environment.getExternalStorageDirectory().getCanonicalPath() + url);
         webView.setInitialScale(100);
         webView.getSettings().setJavaScriptEnabled(true);
         webView.getSettings().setAllowContentAccess(true);

@@ -2,9 +2,10 @@
 <html lang="en">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <meta name=”viewport” content=”width=device-width,initial-scale=1″/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
     <link href="css/screen_show.css" rel="stylesheet">
+    <link href="ico/icons8-rank.ico" rel="shortcut icon">
     <script type="text/javascript" src="js/jquery.min.js"></script>
     <!-- 引入Vue.js框架 -->
     <script src="js/vue.js"></script>
@@ -13,12 +14,15 @@
 
 <body>
 <!--总体布局-->
-<div id="this-target-whole-info" class="all">
+<div id="this-target-whole-info" class="all" v-cloak>
     <!--LOGO遮罩区域-->
     <div v-if="!isShowMask" class="mask">
         <div class="before-mask-box">
             <img class="mask-logo" src="images/company.png">
             <div class="mask-text">{{maskText}}</div>
+        </div>
+        <div class="mask_target-box">
+            <div class="mask_target_num">{{target_line<10 ? "0" + target_line : target_line}}</div>
         </div>
     </div>
     <!--选手决赛完成遮罩区域-->
@@ -26,6 +30,9 @@
         <qy-finish-finals-mask-box :player_info="vue_playerInfo" :rank_num="rank_num" :rank_color="rank_color"
                                    :one_digit_font_size="one_digit_font_size" :two_digit_font_size="two_digit_font_size"
                                    :total_score="total_score"></qy-finish-finals-mask-box>
+        <div class="mask_target-box">
+            <div class="mask_target_num">{{target_line<10 ? "0" + target_line : target_line}}</div>
+        </div>
     </div>
     <!--背景区域-->
     <div class="background">
@@ -44,6 +51,10 @@
                     <div class="all_shoots-box">
                         <qy-all-shoots-box-parent v-for="(item, index) in current_line_shoot_data" :item="item"
                                                   :key="index"></qy-all-shoots-box-parent>
+                    </div>
+                    <!--射击发数区域-->
+                    <div class="current_order-box">
+                        <qy-current-order-box :current_order="current_order"></qy-current-order-box>
                     </div>
                 </div>
             </div>
@@ -87,7 +98,12 @@
             <!--分组靶道信息区域-->
             <qy-group-and-target-box :group_info="vue_groupInfo" :target_line="target_line"></qy-group-and-target-box>
             <!--选手信息区域-->
-            <qy-player-info-box :player_info="vue_playerInfo"></qy-player-info-box>
+            <div class="athlete_info-box">
+                <!--选手姓名区域-->
+                <qy-player-name-box :player_info="vue_playerInfo"></qy-player-name-box>
+                <!--选手团队区域-->
+                <qy-player-team-box :player_info="vue_playerInfo"></qy-player-team-box>
+            </div>
         </div>
     </div>
 </div>
@@ -101,8 +117,6 @@
     var param2 = param.split('&')[1];
     var venueNo = param1.split('=')[1];
     var targetNo = param2.split('=')[1];
-    // var venueNo = 16;
-    // var targetNo = 1;
 
     /**
      * 完成决赛遮罩显示组件
@@ -198,6 +212,13 @@
         `
     })
     /**
+     * 当前发序区域组件
+     */
+    Vue.component('qy-current-order-box', {
+        props: ['current_order'],
+        template: `<div class="box_4-num">发序：{{current_order < 10 ? "0" + current_order : current_order}}</div>`
+    })
+    /**
      * 排名区域动画组件
      * v-if="ready_state == true && is_testing == true && is_formal == true && is_shoot_exit == true"
      */
@@ -266,24 +287,30 @@
         `
     })
     /**
-     * 选手信息区域组件
+     * 选手姓名区域组件
      */
-    Vue.component('qy-player-info-box', {
+    Vue.component('qy-player-name-box', {
         props: ['player_info'],
         template: `
-            <div class="athlete_info-box">
-                <div class="box_9_remark-text">国家：</div>
+            <div class="athleteName">
                 <div v-if="player_info.athleteName" class="country">
                     <div class="flag_img">
                         <img src="images/中国国旗.jpg" alt=""/>
                     </div>
                     <div class="flag_name">CHINA</div>
                 </div>
-                <!--                <div class="box_9_detail-text">{{vue_playerInfo.athleteNation}}</div>-->
-                <div class="box_9_remark-text">选手：</div>
-                <div class="box_9_detail-text">{{player_info.athleteName}}</div>
-                <div class="box_9_remark-text">团队：</div>
-                <div class="box_9_detail-text">{{player_info.athleteTeam}}</div>
+                <div class="box_9-text">{{player_info.athleteName}}</div>
+            </div>
+        `
+    })
+    /**
+     * 选手团队区域组件
+     */
+    Vue.component('qy-player-team-box', {
+        props: ['player_info'],
+        template: `
+            <div class="athleteTeam">
+                <div class="box_10-text">{{player_info.athleteTeam}}</div>
             </div>
         `
     })
@@ -306,7 +333,8 @@
              */
             canvas_width: (document.body.clientWidth - 6) * 0.8 * 0.725,
             canvas_height: (document.body.clientHeight - 4) * 0.88,
-            target_scale_ratio: 1,//缩放比例
+            rifle_target_scale_ratio: 45.5 / 15.5,//步枪初始缩放比例
+            pistol_target_scale_ratio: 155.5 / 59.5,//手枪初始缩放比例
             timer: false,// 为了避免频繁触发resize函数导致页面卡顿，使用定时器
             /**
              * 比赛阶段区域
@@ -317,6 +345,7 @@
              */
             all_line_shoot_data: [],//所有靶道数据数组
             current_line_shoot_data: [],//展示当前靶道的数据进行分组后的集合数组
+            isRecoveringData: false,//是否正在恢复数据
             isNeedOddFinals: false,//该靶道是否需要准备单发射击，默认为false
             isOddShootingFinals: false,//是否正在进行单发射击决赛，默认为false
             isFinishMatchFinals: false,//是否完成比赛决赛或决赛被淘汰，默认为false
@@ -333,6 +362,8 @@
                 9: "第九组",
                 10: "第十组"
             },
+            shoots_count: 0,//射击数量
+            current_order: 0,//当前发序
             /**
              * 排名区域动画
              */
@@ -342,6 +373,7 @@
             is_need_odd_finals: false,//是否需要单发射击
             is_odd_shoot_finals: false,//是否正在单发射击
             is_shoot_exit: false,//是否出现射击成绩
+            is_shooting: false,//当前靶道是否正在进行射击
             rank_text: "",//展示信息
             rank_num: 0,
             //排名颜色
@@ -359,8 +391,10 @@
             rank_color: "",
             //多个动画
             animates_list: {
-                1: "spin-bigger",//旋转变大
-                2: "spin-smaller",//旋转变小
+                // 1: "spin-bigger",//旋转变大
+                // 2: "spin-smaller",//旋转变小
+                1: "bigger",//变大
+                2: "smaller",//变小
                 3: "bottom-in",//底部飞入
                 4: "bottom-out",//底部飞出
                 5: "left-in",//左飞入
@@ -417,7 +451,7 @@
              * 绘制步枪靶
              */
             drawRifleTarget() {
-                var scale = this.target_scale_ratio;//获取缩放比例
+                var scale = this.rifle_target_scale_ratio;//获取缩放比例
                 var targetBoxWidth = document.getElementsByClassName("target-box")[0].clientWidth;//获取其中一个外层div宽度，决定靶心偏移量
                 var canvasRifle = document.getElementById("target-type");
                 canvasRifle.setAttribute("width", this.canvas_width * scale);
@@ -461,13 +495,11 @@
              * 绘制手枪靶
              */
             drawPistolTarget() {
-                var scale = this.target_scale_ratio;//获取缩放比例
+                var scale = this.pistol_target_scale_ratio;//获取缩放比例
                 var targetBoxWidth = document.getElementsByClassName("target-box")[0].clientWidth;//获取其中一个外层div宽度，决定靶心偏移量
                 var canvasPistol = document.getElementById("target-type");
                 canvasPistol.setAttribute("width", this.canvas_width * scale);
                 canvasPistol.setAttribute("height", this.canvas_height * scale);
-                console.log(document.getElementsByClassName("target-box"))
-                console.log(targetBoxWidth)
                 var ctx = canvasPistol.getContext("2d");
                 // 加载前清空画布
                 ctx.clearRect(0, 0, canvasPistol.clientWidth, canvasPistol.clientHeight);
@@ -515,10 +547,15 @@
                 ctx.stroke();
             },
             /**
-             * 绘制射击点
+             * 非正在射击重新绘制所有射击点（带红色射击点）
              */
-            paint_point() {
-                var scale = this.target_scale_ratio;//获取缩放比例
+            repaint_all_points() {
+                var scale;//获取缩放比例
+                if (this.match_type === "步枪") {
+                    scale = this.rifle_target_scale_ratio;
+                } else if (this.match_type === "手枪") {
+                    scale = this.pistol_target_scale_ratio;
+                }
                 var targetBoxWidth = document.getElementsByClassName("target-box")[0].clientWidth;//获取其中一个外层div宽度，决定靶心偏移量
                 var canvasPoint = document.getElementById("shoot-point");
                 canvasPoint.setAttribute("width", this.canvas_width * scale);
@@ -538,15 +575,15 @@
                 var rifle_ring_unit = ring_height * (0.5 / 45.5);//核心区域标准比例的最小单位长度（步枪）
                 var pistol_ring_unit = ring_height * (0.5 / 155.5);//核心区域标准比例的最小单位长度（手枪）
                 if (this.match_type === "步枪") {
-                    border = 14 * scale;
+                    border = 7 * scale;
                     radius = 4.5 * rifle_ring_unit - border;
                     // 指定填充颜色
                     ctx.fillStyle = "transparent";//透明
-                    ctx.lineWidth = border;//射击点边框
+                    ctx.lineWidth = border * 2;//射击点边框
                     for (var i = 0; i < this.shoot_point_array.length; i++) {
                         coordinate = {
-                            x: (radius + ring_radius) * this.shoot_point_array[i].x + w,
-                            y: (radius + ring_radius) * this.shoot_point_array[i].y + h
+                            x: ring_radius * this.shoot_point_array[i].x + w,
+                            y: ring_radius * this.shoot_point_array[i].y + h
                         };
                         ctx.beginPath();
                         ctx.arc(coordinate.x, coordinate.y, radius, 0, Math.PI * 2);
@@ -560,15 +597,15 @@
                         }
                     }
                 } else if (this.match_type === "手枪") {
-                    border = 4 * scale;
+                    border = 2 * scale;
                     radius = 4.5 * pistol_ring_unit - border;
                     // 指定填充颜色
                     ctx.fillStyle = "transparent";//透明
-                    ctx.lineWidth = border;//射击点边框
+                    ctx.lineWidth = border * 2;//射击点边框
                     for (var j = 0; j < this.shoot_point_array.length; j++) {
                         coordinate = {
-                            x: (radius + ring_radius) * this.shoot_point_array[j].x + w,
-                            y: (radius + ring_radius) * this.shoot_point_array[j].y + h
+                            x: ring_radius * this.shoot_point_array[j].x + w,
+                            y: ring_radius * this.shoot_point_array[j].y + h
                         };
                         ctx.beginPath();
                         ctx.arc(coordinate.x, coordinate.y, radius, 0, Math.PI * 2);
@@ -584,6 +621,75 @@
                 }
             },
             /**
+             * 正在射击重新绘制所有射击点（无红色射击点）
+             */
+            shooting_repaint_all_points() {
+                var scale;//获取缩放比例
+                if (this.match_type === "步枪") {
+                    scale = this.rifle_target_scale_ratio;
+                } else if (this.match_type === "手枪") {
+                    scale = this.pistol_target_scale_ratio;
+                }
+                var targetBoxWidth = document.getElementsByClassName("target-box")[0].clientWidth;//获取其中一个外层div宽度，决定靶心偏移量
+                var canvasPoint = document.getElementById("shoot-point");
+                canvasPoint.setAttribute("width", this.canvas_width * scale);
+                canvasPoint.setAttribute("height", this.canvas_height * scale);
+                var ctx = canvasPoint.getContext("2d");
+                // 加载前清空画布
+                ctx.clearRect(0, 0, canvasPoint.clientWidth, canvasPoint.clientHeight);
+                var w = canvasPoint.clientWidth / 2;//根据(0, 0)点横坐标需要移动的距离
+                var h = canvasPoint.clientHeight / 2;//根据(0, 0)点纵坐标需要移动的距离
+                ctx.translate(-(w - targetBoxWidth / 2), 0);//缩放横移
+                // 定义射击点边框、半径、坐标参数
+                var border;
+                var radius;
+                var coordinate;
+                var ring_height = canvasPoint.clientHeight * 0.96;//核心区域高
+                var ring_radius = ring_height / 2;//核心区域最外圈半径
+                var rifle_ring_unit = ring_height * (0.5 / 45.5);//核心区域标准比例的最小单位长度（步枪）
+                var pistol_ring_unit = ring_height * (0.5 / 155.5);//核心区域标准比例的最小单位长度（手枪）
+                if (this.match_type === "步枪") {
+                    border = 7 * scale;
+                    radius = 4.5 * rifle_ring_unit - border;
+                    // 指定填充颜色
+                    ctx.fillStyle = "transparent";//透明
+                    ctx.lineWidth = border * 2;//射击点边框
+                    for (var i = 0; i < this.shoot_point_array.length; i++) {
+                        coordinate = {
+                            x: ring_radius * this.shoot_point_array[i].x + w,
+                            y: ring_radius * this.shoot_point_array[i].y + h
+                        };
+                        ctx.beginPath();
+                        ctx.arc(coordinate.x, coordinate.y, radius, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.strokeStyle = "#00ff00";
+                        ctx.stroke();
+                    }
+                } else if (this.match_type === "手枪") {
+                    border = 2 * scale;
+                    radius = 4.5 * pistol_ring_unit - border;
+                    // 指定填充颜色
+                    ctx.fillStyle = "transparent";//透明
+                    ctx.lineWidth = border * 2;//射击点边框
+                    for (var j = 0; j < this.shoot_point_array.length; j++) {
+                        coordinate = {
+                            x: ring_radius * this.shoot_point_array[j].x + w,
+                            y: ring_radius * this.shoot_point_array[j].y + h
+                        };
+                        ctx.beginPath();
+                        ctx.arc(coordinate.x, coordinate.y, radius, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.strokeStyle = "#00ff00";
+                        ctx.stroke();
+                    }
+                }
+            },
+            /**
+             * 绘制瞄点曲线
+             */
+            paint_aim_curve() {
+            },
+            /**
              * 设置Canvas缩放大小
              */
             setCanvasSize(ring) {
@@ -595,17 +701,27 @@
                 if (this.match_type === "步枪") {
                     changeMultiple = (rifleTenRingDiameter + (10 - ring) * rifleRingDiameterDiff) / 45.5;
                     //将缩放比例赋值Vue
-                    this.target_scale_ratio = 1 / changeMultiple;
+                    this.rifle_target_scale_ratio = 1 / changeMultiple;
                     //重新绘制靶图和射击点
                     this.drawRifleTarget();
-                    this.paint_point();
+                    // 判断当前是否正在一发射击状态
+                    if (this.is_shooting) {
+                        this.shooting_repaint_all_points();
+                    } else {
+                        this.repaint_all_points();
+                    }
                 } else if (this.match_type === "手枪") {
                     changeMultiple = (pistolTenRingDiameter + (10 - ring) * pistolRingDiameterDiff) / 155.5;
                     //将缩放比例赋值Vue
-                    this.target_scale_ratio = 1 / changeMultiple;
+                    this.pistol_target_scale_ratio = 1 / changeMultiple;
                     //重新绘制靶图和射击点
                     this.drawPistolTarget();
-                    this.paint_point();
+                    // 判断当前是否正在一发射击状态
+                    if (this.is_shooting) {
+                        this.shooting_repaint_all_points();
+                    } else {
+                        this.repaint_all_points();
+                    }
                 }
             },
             /**
@@ -648,7 +764,7 @@
              * 决赛分组显示成绩
              */
             orderAddFinals(orderList) {
-                if (!thisTargetWholeInfo.isOddShootingFinals) {
+                if (!this.isOddShootingFinals) {
                     var no = orderList.orderNo;
                     var result;
                     var groupList;
@@ -696,7 +812,8 @@
                 } else {
                     //处理单发射击列表显示
                     var len = this.current_line_shoot_data.length;
-                    this.current_line_shoot_data[len].scoreData.push(orderList);
+                    console.log(len);
+                    this.current_line_shoot_data[len - 1].scoreData.push(orderList);
                 }
             },
             /**
@@ -704,9 +821,17 @@
              */
             hideClass(shootCount) {
                 var classArray = $(".box_3_bottom-text");
-                var hideNum = parseInt(classArray.length / shootCount) * shootCount;
-                for (var i = 0; i < hideNum; i++) {
-                    classArray.eq(i).hide();
+                var hideNum;
+                if (this.isRecoveringData) {
+                    hideNum = parseInt((classArray.length - 1) / shootCount) * shootCount;
+                    for (var i = 0; i < hideNum; i++) {
+                        classArray.eq(i).hide();
+                    }
+                } else {
+                    hideNum = classArray.length - 1;
+                    for (var j = 0; j < hideNum; j++) {
+                        classArray.eq(j).hide();
+                    }
                 }
             },
             /**
@@ -731,23 +856,47 @@
                 this.rank_text = "正式射击";
             },
             needOddFinalsText() {
-                this.resetAni();
-                thisTargetWholeInfo.rank_color = "#FF0000";
+                this.ready_state = false;
+                this.is_testing = false;
+                this.is_formal = false;
+                this.is_odd_shoot_finals = false;
+                this.is_shoot_exit = false;
+                this.rank_color = "#FF0000";
+                this.rank_text = "准备单发决赛";
+                this.rank_animate_string = "";
+                this.ready_show = false;
+                this.testing_show = false;
+                this.start_show = false;
+                this.rank_circle_show = false;
+                this.rank_num_show = false;
+                this.odd_shoot_finals_show = false;
                 this.is_need_odd_finals = true;
                 this.need_odd_finals_show = true;
-                this.rank_text = "准备单发决赛";
             },
             oddShootFinalsText() {
-                this.resetAni();
-                thisTargetWholeInfo.rank_color = "#FF0000";
+                this.ready_state = false;
+                this.is_testing = false;
+                this.is_formal = false;
+                this.is_need_odd_finals = false;
+                this.is_shoot_exit = false;
+                this.rank_color = "#FF0000";
+                this.rank_text = "正在单发决赛";
+                this.rank_animate_string = "";
+                this.ready_show = false;
+                this.testing_show = false;
+                this.start_show = false;
+                this.rank_circle_show = false;
+                this.rank_num_show = false;
+                this.need_odd_finals_show = false;
                 this.is_odd_shoot_finals = true;
                 this.odd_shoot_finals_show = true;
-                this.rank_text = "正在单发决赛";
             },
             resetAni() {
                 this.ready_state = false;
                 this.is_testing = false;
                 this.is_formal = false;
+                this.is_need_odd_finals = false;
+                this.is_odd_shoot_finals = false;
                 this.is_shoot_exit = false;
                 this.rank_text = "";
                 this.rank_num = 0;
@@ -758,15 +907,62 @@
                 this.start_show = false;
                 this.rank_circle_show = false;
                 this.rank_num_show = false;
+                this.need_odd_finals_show = false;
+                this.odd_shoot_finals_show = false;
             },
             display_rank() {
                 this.ready_state = false;
                 this.is_testing = false;
                 this.is_formal = false;
+                this.is_need_odd_finals = false;
+                this.is_odd_shoot_finals = false;
                 this.ready_show = false;
                 this.testing_show = false;
                 this.start_show = false;
+                this.need_odd_finals_show = false;
+                this.odd_shoot_finals_show = false;
                 this.is_shoot_exit = true;
+            },
+            matchOver() {
+                this.ready_state = false;
+                this.is_testing = false;
+                this.is_formal = false;
+                this.is_need_odd_finals = false;
+                this.is_odd_shoot_finals = false;
+                this.rank_text = "";
+                this.rank_animate_string = "";
+                this.ready_show = false;
+                this.testing_show = false;
+                this.start_show = false;
+                this.need_odd_finals_show = false;
+                this.odd_shoot_finals_show = false;
+                this.is_shoot_exit = true;
+                if (this.rank_num > 8) {
+                    this.rank_color = this.rank_color_list.default;
+                } else {
+                    this.rank_color = this.rank_color_list[this.rank_num];
+                }
+            },
+            continueMatch() {
+                this.ready_state = false;
+                this.is_testing = false;
+                this.is_formal = false;
+                this.is_need_odd_finals = false;
+                this.is_odd_shoot_finals = false;
+                this.rank_text = "";
+                this.rank_animate_string = "";
+                this.ready_show = false;
+                this.testing_show = false;
+                this.start_show = false;
+                this.need_odd_finals_show = false;
+                this.odd_shoot_finals_show = false;
+                if (this.rank_num > 8) {
+                    this.rank_color = this.rank_color_list.default;
+                } else {
+                    this.rank_color = this.rank_color_list[this.rank_num];
+                }
+                this.is_shoot_exit = true;
+                this.rank_num_show = true;
             },
             /**
              * 底飞入旋转变大
@@ -788,7 +984,7 @@
                         thisTargetWholeInfo.rank_num_show = true;
                         thisTargetWholeInfo.rank_animate_string = thisTargetWholeInfo.animates_list[1] + " 0.25s linear";
                     }, 250);
-                }, 500);
+                }, 1500);
             },
             /**
              * 左飞入旋转变大
@@ -809,7 +1005,7 @@
                         thisTargetWholeInfo.rank_num_show = true;
                         thisTargetWholeInfo.rank_animate_string = thisTargetWholeInfo.animates_list[1] + " 0.25s linear";
                     }, 250);
-                }, 500);
+                }, 1500);
             },
             /**
              * 右飞入旋转变大
@@ -822,15 +1018,15 @@
                     } else {
                         thisTargetWholeInfo.rank_color = thisTargetWholeInfo.rank_color_list[rank];
                     }
-                    thisTargetWholeInfo.rank_animate_string = thisTargetWholeInfo.animates_list[7] + " 0.25s linear";
                     thisTargetWholeInfo.rank_circle_show = true;
                     thisTargetWholeInfo.rank_num_show = false;
+                    thisTargetWholeInfo.rank_animate_string = thisTargetWholeInfo.animates_list[7] + " 0.25s linear";
                     setTimeout(function () {
                         thisTargetWholeInfo.rank_circle_show = false;
                         thisTargetWholeInfo.rank_num_show = true;
-                        thisTargetWholeInfo.rank_animate_string = thisTargetWholeInfo.animates_list[1] + " 0.25s linear";
+                        thisTargetWholeInfo.rank_animate_string = thisTargetWholeInfo.animates_list[1] + "0.25s linear";
                     }, 250);
-                }, 500);
+                }, 1500);
             },
             /**
              * 旋转变小底飞出
@@ -841,6 +1037,10 @@
                     thisTargetWholeInfo.rank_circle_show = true;
                     thisTargetWholeInfo.rank_num_show = false;
                     thisTargetWholeInfo.rank_animate_string = thisTargetWholeInfo.animates_list[4] + " 0.25s linear";
+                }, 250);
+                // 隐藏圆
+                setTimeout(function () {
+                    thisTargetWholeInfo.rank_circle_show = false;
                 }, 250);
             },
             /**
@@ -853,6 +1053,10 @@
                     thisTargetWholeInfo.rank_num_show = false;
                     thisTargetWholeInfo.rank_animate_string = thisTargetWholeInfo.animates_list[6] + " 0.25s linear";
                 }, 250);
+                // 隐藏圆
+                setTimeout(function () {
+                    thisTargetWholeInfo.rank_circle_show = false;
+                }, 250);
             },
             /**
              * 旋转变小右飞出
@@ -863,6 +1067,10 @@
                     thisTargetWholeInfo.rank_circle_show = true;
                     thisTargetWholeInfo.rank_num_show = false;
                     thisTargetWholeInfo.rank_animate_string = thisTargetWholeInfo.animates_list[8] + " 0.25s linear";
+                }, 250);
+                // 隐藏圆
+                setTimeout(function () {
+                    thisTargetWholeInfo.rank_circle_show = false;
                 }, 250);
             },
             /**
@@ -879,7 +1087,7 @@
                     thisTargetWholeInfo.rank_circle_show = false;
                     thisTargetWholeInfo.rank_num_show = true;
                     thisTargetWholeInfo.rank_animate_string = thisTargetWholeInfo.animates_list[1] + " 0.25s linear";
-                }, 750);
+                }, 1750);
             },
             /**
              * 清空试射数据操作
@@ -890,6 +1098,10 @@
                 //清空列表中所有射击数据
                 this.all_line_shoot_data = [];
                 this.current_line_shoot_data = [];
+                //重置射击数量
+                this.shoots_count = 0;
+                //重置当前发序
+                this.current_order = 0;
                 //重置当前环数区域
                 this.newest_score = 0;
                 //重置总成绩区域
@@ -910,7 +1122,7 @@
                 this.total_score = 0;
             },
             /**
-             * 当接收到新比赛信息或比赛结束信号清空比赛数据
+             * 当接收到新比赛信息或比赛结束信号清空比赛数据和重置比赛状态
              */
             clearMatchData() {
                 //清空射击点
@@ -918,10 +1130,27 @@
                 //清空列表中所有射击数据
                 this.all_line_shoot_data = [];
                 this.current_line_shoot_data = [];
+                //重置靶图缩放大小
+                this.rifle_target_scale_ratio = 45.5 / 15.5;
+                this.pistol_target_scale_ratio = 155.5 / 59.5;
+                // 当接受到新的比赛信息时，排名区域重置
+                this.resetAni();
+                // 当接收到新的比赛信息时，清空排名数组
+                this.shoot_exit_rank_array = [];
+                //重置射击数量
+                this.shoots_count = 0;
+                //重置当前发序
+                this.current_order = 0;
                 //重置当前环数区域
                 this.newest_score = 0;
                 //重置总成绩区域
                 this.total_score = 0;
+                // 重置目前赛事状态
+                this.isNeedOddFinals = false;
+                this.isOddShootingFinals = false;
+                this.isFinishMatchFinals = false;
+                // 重置决赛完赛遮罩
+                this.isOverMask = false;
             }
         }
     })
@@ -934,7 +1163,7 @@
             // 为了避免频繁触发resize函数导致页面卡顿，使用定时器
             if (!thisTargetWholeInfo.timer) {
                 thisTargetWholeInfo.timer = true;
-                setTimeout(function(){
+                setTimeout(function () {
                     // 重新赋值最新窗口数据
                     thisTargetWholeInfo.canvas_width = (document.body.clientWidth - 8) * 0.8 * 0.725;
                     thisTargetWholeInfo.canvas_height = (document.body.clientHeight - 6) * 0.88;
@@ -943,7 +1172,12 @@
                     } else if (thisTargetWholeInfo.match_type === "手枪") {
                         thisTargetWholeInfo.drawPistolTarget();
                     }
-                    thisTargetWholeInfo.paint_point();
+                    // 判断当前是否正在一发射击状态
+                    if (thisTargetWholeInfo.is_shooting) {
+                        thisTargetWholeInfo.shooting_repaint_all_points();
+                    } else {
+                        thisTargetWholeInfo.repaint_all_points();
+                    }
                     thisTargetWholeInfo.timer = false
                 }, 200);
             }
@@ -1031,6 +1265,9 @@
             case 14://冠军信息（表示射击结束）
                 shoot_end();
                 break;
+            case 16://上膛信息，表示正在射击
+                signalShooting();
+                break;
             default:
                 break;
         }
@@ -1078,21 +1315,25 @@
 
     // 处理比赛JSON信息
     function match_info(match_data) {
-        thisTargetWholeInfo.isShowMask = true;//存在赛事显示射击界面
         eval("var obj = " + match_data);
         var info = obj;
         console.log(info);
-        var competitionId = parseInt(info.competitionId);
-        var group = info.currentGroup;
-        var type = info.competitionEvent.toString().split("-")[2];
-        var stage = info.stage;
         // 当接收到新的比赛信息清空比赛数据
         thisTargetWholeInfo.clearMatchData();
+        thisTargetWholeInfo.isShowMask = true;//存在赛事显示射击界面
+        var competitionId = parseInt(info.competitionId);
+        var group = info.currentGroup;
+        var type;
+        if (info.competitionEvent.indexOf("步枪") !== -1) {
+            type = "步枪";
+        } else if (info.competitionEvent.indexOf("手枪") !== -1) {
+            type = "手枪";
+        }
+        thisTargetWholeInfo.match_type = type;//比赛类型赋值vue
+        var stage = info.stage;
         thisTargetWholeInfo.match_type = type;
         thisTargetWholeInfo.target_type_string = "10 米激光" + type + "（中心成绩 10.9）";//靶类型字符串赋值vue
         thisTargetWholeInfo.vue_matchInfo = info;//比赛类型赋值vue
-        // 当接受到新的比赛信息时，排名区域重置
-        thisTargetWholeInfo.resetAni();
         if (type === "步枪") {
             thisTargetWholeInfo.drawRifleTarget();
         } else if (type === "手枪") {
@@ -1106,7 +1347,8 @@
         thisTargetWholeInfo.vue_groupInfo.currentGroup = group;//分组赋值vue
         // 数据恢复操作
         if (group !== 0) {
-            console.log("正在恢复数据...")
+            console.log("正在恢复数据...");
+            thisTargetWholeInfo.isRecoveringData = true;
             var list;//存放恢复射击单位数据
             var str1 = "/reload/testTime";
             var str2 = "/reload/athlete";
@@ -1119,11 +1361,12 @@
             if (request(str1, pData1) > 0) {
                 thisTargetWholeInfo.testingText();
             } else {
+                thisTargetWholeInfo.startText();
                 // 恢复该靶道射击数据
                 var recoverShootData = request(str2, pData2);
                 for (var i = 0; i < recoverShootData.length; i++) {
                     list = {
-                        orderNo: recoverShootData[i].order,//发序
+                        orderNo: recoverShootData[i].order > 10000 ? "*" : recoverShootData[i].order,//发序
                         shootPoint: {x: recoverShootData[i].aim.x, y: recoverShootData[i].aim.y},//射击点坐标
                         shootDirection: recoverShootData[i].direction,//方位
                         shootScore: recoverShootData[i].score,//当前环数成绩
@@ -1149,15 +1392,20 @@
                         thisTargetWholeInfo.shoot_point_array.push(recoverShootData[i].aim);
                         thisTargetWholeInfo.orderAddFinals(list);
                     }
+                    thisTargetWholeInfo.shoots_count++;
                     if (i === recoverShootData.length - 1) {
+                        thisTargetWholeInfo.current_order = recoverShootData[i].order;
                         thisTargetWholeInfo.newest_score = recoverShootData[i].score;
                         thisTargetWholeInfo.total_score = recoverShootData[i].totalScore;
                     }
                 }
-                thisTargetWholeInfo.paint_point();
+                // 数据恢复所有射击点为绿色
+                thisTargetWholeInfo.shooting_repaint_all_points();
                 // 恢复该靶道选手信息
-                thisTargetWholeInfo.vue_playerInfo.athleteName = request(str3, pData3);
+                thisTargetWholeInfo.vue_playerInfo.athleteName = request(str3, pData3).athleteName;
+                thisTargetWholeInfo.vue_playerInfo.athleteTeam = request(str3, pData3).team;
             }
+            console.log("数据恢复完成...");
         }
         // var infoLen = Object.keys(info).length;//计算对象长度
     }
@@ -1174,6 +1422,8 @@
             thisTargetWholeInfo.vue_playerInfo.athleteName = info.athleteName;
             thisTargetWholeInfo.vue_playerInfo.athleteTeam = info.team;
             // 当接受到分组切换信号就更新投显展示字样、数据及状态
+            thisTargetWholeInfo.shoots_count = 0;
+            thisTargetWholeInfo.current_order = 0;
             thisTargetWholeInfo.newest_score = 0;
             thisTargetWholeInfo.total_score = 0;
             thisTargetWholeInfo.all_line_shoot_data = [];
@@ -1200,6 +1450,10 @@
         thisTargetWholeInfo.clearTestingData();
         // 当接受到开始信号就更新展示字样
         thisTargetWholeInfo.startText();
+        // 当接受到开始信号就将发数清零
+        thisTargetWholeInfo.shoots_count = 0;
+        // 当接受到开始信号就将发序清零
+        thisTargetWholeInfo.current_order = 0;
     }
 
     // 处理所有靶道射击数据JSON信息
@@ -1207,9 +1461,17 @@
         eval("var obj = " + shoot_data);
         var info = obj;
         console.log(info);
+        // 当接受到射击数据是证明不正在数据恢复
+        thisTargetWholeInfo.isRecoveringData = false;
+        // 当接收到射击数据修证明不正在最新射击
+        thisTargetWholeInfo.is_shooting = false;
         // 更新当前成绩和总成绩的展示
         thisTargetWholeInfo.newest_score = info.score;
-        if (!thisTargetWholeInfo.isOddShootingFinals || !thisTargetWholeInfo.isFinishMatchFinals) {
+        if (!(thisTargetWholeInfo.isNeedOddFinals || thisTargetWholeInfo.isOddShootingFinals || thisTargetWholeInfo.isFinishMatchFinals)) {
+            //射击数量+1
+            thisTargetWholeInfo.shoots_count++;
+            //当前发序赋值vue
+            thisTargetWholeInfo.current_order = info.aim.order;
             //如果不是进行单发射击或者选手被淘汰则正常更新总成绩
             thisTargetWholeInfo.total_score = info.totalScore;
         }
@@ -1226,11 +1488,13 @@
                 thisTargetWholeInfo.shoot_point_array = [];
             }
             thisTargetWholeInfo.shoot_point_array.push(info.aim);
-            thisTargetWholeInfo.orderAddQualifying(list);
-            thisTargetWholeInfo.paint_point();
+            if (!thisTargetWholeInfo.is_testing) {//非试射阶段展示列表
+                thisTargetWholeInfo.orderAddQualifying(list);
+            }
+            thisTargetWholeInfo.repaint_all_points();
         } else if (thisTargetWholeInfo.match_stage === "决赛") {
             if (!thisTargetWholeInfo.isOddShootingFinals) {//如果不是单发射击
-                if (info.aim.order <= 10) {
+                if (info.aim.order <= 11) {
                     if (info.aim.order % 5 === 1) {
                         thisTargetWholeInfo.shoot_point_array = [];
                     }
@@ -1240,14 +1504,16 @@
                     }
                 }
                 thisTargetWholeInfo.shoot_point_array.push(info.aim);
-                thisTargetWholeInfo.orderAddFinals(list);
-                thisTargetWholeInfo.paint_point();
+                if (!thisTargetWholeInfo.is_testing) {
+                    thisTargetWholeInfo.orderAddFinals(list);
+                }
+                thisTargetWholeInfo.repaint_all_points();
             } else {//正在单发射击
                 if (thisTargetWholeInfo.isNeedOddFinals) {//如果该靶道是准备进行单发射击的靶道
                     thisTargetWholeInfo.shoot_point_array = [];
                     thisTargetWholeInfo.shoot_point_array.push(info.aim);
                     thisTargetWholeInfo.orderAddFinals(list);
-                    thisTargetWholeInfo.paint_point();
+                    thisTargetWholeInfo.repaint_all_points();
                 } else {
                     //如果该靶道不是准备进行单发射击的靶道，则数据不变
                 }
@@ -1255,85 +1521,12 @@
         }
     }
 
-    // function rank_info1(rank_data) {
-    //     eval("var obj = " + rank_data);
-    //     var info = obj;
-    //     var oldRankArray = thisTargetWholeInfo.shoot_exit_rank_array;
-    //     var newRankArray = info;
-    //     var targetLine = thisTargetWholeInfo.target_line;
-    //     // 当接收到射击数据开启排名显示
-    //     thisTargetWholeInfo.display_rank();
-    //
-    //     var oldRank = -1;//当前靶道旧排名
-    //     var newRank = -1;//当前靶道新排名
-    //
-    //     var rankGo = 0;//排名去向
-    //     var rankCome = 0;//排名来源
-    //
-    //     // 获取当前靶道新排名
-    //     newRankArray.forEach((element) => {
-    //         if (element.key === targetLine) {
-    //             newRank = element.value;
-    //         }
-    //     });
-    //
-    //     if (oldRankArray != null) {//如果旧数组不为空
-    //         oldRankArray.forEach((element) => {
-    //             if (element.key === targetLine) {//获取当前靶道旧排名
-    //                 oldRank = element.value;
-    //             }
-    //             // if (newRank === element.value) {
-    //             //     if (element.key > targetLine) {
-    //             //         rankCome = 1;
-    //             //     }
-    //             //     if (element.key < targetLine) {
-    //             //         rankCome = -1;
-    //             //     }
-    //             // }
-    //         })
-    //     }
-    //
-    //     newRankArray.forEach((element) => {
-    //         if (oldRank === element.value) {
-    //             if (element.key > targetLine) {
-    //                 rankGo = 1;
-    //             }
-    //             if (element.key < targetLine) {
-    //                 rankGo = -1;
-    //             }
-    //         }
-    //     })
-    //
-    //     if (oldRank < 0) {
-    //         // 从下飞入
-    //     } else {
-    //         switch (rankGo) {
-    //             case -1:
-    //                 // 往左飞出
-    //                 break;
-    //             case 1:
-    //                 // 往右飞出
-    //                 break;
-    //             case 0:
-    //                 // 往下飞出
-    //                 break;
-    //         }
-    //         switch(rankCome) {
-    //             case -1:
-    //                 // 从左飞入
-    //                 break;
-    //             case 1:
-    //                 // 从右飞入
-    //                 break;
-    //             case 0:
-    //                 // 从下飞入
-    //                 break;
-    //         }
-    //     }
-    // }
-
     // 处理排名集合JSON信息
     function rank_info(rank_data) {
+        // 如果当前靶道是需要单发决赛或已完成比赛则不会处理排名信息
+        if (thisTargetWholeInfo.isNeedOddFinals === true || thisTargetWholeInfo.isFinishMatchFinals === true) {
+            return;
+        }
         eval("var obj = " + rank_data);
         var info = obj;
         var oldRankArray = thisTargetWholeInfo.shoot_exit_rank_array;
@@ -1362,7 +1555,7 @@
                             for (var key3 in value3) {
                                 if (parseInt(key3.substring(2)) === targetLine) {
                                     var newRank = value3[key3];//当前靶道新排名
-                                    if (oldRank === newRank) {//如果当前靶道排名不变，
+                                    if (oldRank === newRank) {//如果当前靶道排名不变
                                         thisTargetWholeInfo.spinSmallSpinBig();
                                     } else {
                                         var rankGo;
@@ -1445,18 +1638,6 @@
         }
         // 处理完所有动画将新排名数组赋值vue
         thisTargetWholeInfo.shoot_exit_rank_array = newRankArray;
-
-        // 特殊情况（服务于第一名完赛后遮罩）
-        // 如果当前比赛阶段是决赛时
-        // if (thisTargetWholeInfo.match_stage === "决赛") {
-        //     // 如果第一名射击达到24发
-        //     if () {
-        //         // 如果最新排名存在两个第一名
-        //         if () {
-        //
-        //         }
-        //     }
-        // }
     }
 
     // 处理Canvas缩放JSON信息
@@ -1464,7 +1645,8 @@
         eval("var obj = " + zoom_data);
         var info = obj;
         var size = info.size;
-        if (size !== 0) {
+        // 限制靶图最大放大显示到7环
+        if (size !== 0 && size <= 7) {
             thisTargetWholeInfo.setCanvasSize(size);
         }
     }
@@ -1486,7 +1668,9 @@
     // 处理单发射击信号
     function signalOddFinals() {
         thisTargetWholeInfo.isOddShootingFinals = true;//将当前靶道状态改为正在进行单发射击状态
-        thisTargetWholeInfo.oddShootFinalsText();//修改排名区域正在进行单发射击显示字样
+        if (thisTargetWholeInfo.isNeedOddFinals && thisTargetWholeInfo.isOddShootingFinals) {
+            thisTargetWholeInfo.oddShootFinalsText();//修改排名区域正在进行单发射击显示字样
+        }
     }
 
     // 处理继续射击信号
@@ -1494,19 +1678,27 @@
         //结束单发射击状态
         thisTargetWholeInfo.isNeedOddFinals = false;
         thisTargetWholeInfo.isOddShootingFinals = false;
+        //处理继续射击恢复排名区域状态
+        thisTargetWholeInfo.continueMatch();
     }
 
     // 处理选手淘汰信号
     function over_info() {
-        //结束单发射击状态
-        thisTargetWholeInfo.isNeedOddFinals = false;
-        thisTargetWholeInfo.isOddShootingFinals = false;
         //获取当前靶射击计数组多个分组的长度
         var len = thisTargetWholeInfo.current_line_shoot_data.length;
         //获取射击数据最后一个分组数组
         var arr = thisTargetWholeInfo.current_line_shoot_data[len - 1];
         //获取最后一发非单发射击的发序求出最终排名并赋值Vue
-        thisTargetWholeInfo.rank_num = 8 - (arr[1].orderNo - 12) / 2;
+        var last_rank = 8 - (arr.scoreData[1].orderNo - 12) / 2;
+        thisTargetWholeInfo.rank_num = last_rank;
+        if (thisTargetWholeInfo.isOddShootingFinals === true && thisTargetWholeInfo.isNeedOddFinals) {//判断接收淘汰信号是否是在单发射击后接收
+            //结束单发射击状态
+            thisTargetWholeInfo.isNeedOddFinals = false;
+            thisTargetWholeInfo.isOddShootingFinals = false;
+            //出现选手淘汰处理排名区域状态
+            thisTargetWholeInfo.matchOver();
+            thisTargetWholeInfo.bottomFlyInSpinBig(last_rank);
+        }
         thisTargetWholeInfo.isFinishMatchFinals = true;//完成比赛
         setTimeout(function () {
             thisTargetWholeInfo.isOverMask = true;//显示完成决赛遮罩
@@ -1525,41 +1717,13 @@
         }, 3000);
     }
 
-    /*$(document).keydown(function(event){
-        var keyValue = 0;
-        switch (event.keyCode) {
-            case 97:
-                keyValue = 1;
-                break;
-            case 98:
-                keyValue = 2;
-                break;
-            case 99:
-                keyValue = 3;
-                break;
-            case 100:
-                keyValue = 4;
-                break;
-            case 101:
-                keyValue = 5;
-                break;
-            case 102:
-                keyValue = 6;
-                break;
-            case 103:
-                keyValue = 7;
-                break;
-            case 104:
-                keyValue = 8;
-                break;
-            default:
-                keyValue = 0
-                break;
-        }
-        if (keyValue !== 0) {
-            thisTargetWholeInfo.setCanvasSize(keyValue);
-        }
-    });*/
+    // 处理选手上膛信号，表示开始新的一发射击
+    function signalShooting() {
+        //当接收到上膛信号修改状态
+        thisTargetWholeInfo.is_shooting = true;
+        //当接收到上膛信号画布重绘
+        thisTargetWholeInfo.shooting_repaint_all_points();
+    }
 </script>
 </body>
 </html>

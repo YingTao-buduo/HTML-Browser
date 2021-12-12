@@ -1,4 +1,4 @@
-package com.yt.htmlBrowser;
+package com.yt.htmlbrowser;
 
 import android.content.Context;
 
